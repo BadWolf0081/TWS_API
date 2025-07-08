@@ -10,7 +10,7 @@ conn = waconn.WAConn('waconn.ini','/twsd')
 
 # Query to find pools matching provided filter
 resp = conn.post('/plan/job',
-	{ "filters": { "jobInPlanFilter": { "jobName": args.jsname } } }, 
+	{ "filters": { "jobInPlanFilter": { "jobName": args.jname } } }, 
 	headers={'How-Many': '500'})
 
 r = resp.json()
