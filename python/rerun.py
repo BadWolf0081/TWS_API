@@ -25,7 +25,7 @@ filter = {"filters": {"jobInPlanFilter": {"jobStreamName": args.jsName, "jobName
 if args.schedTime:
     filter["filters"]["jobInPlanFilter"]["inputArrivalTime"]=args.schedTime
 
-print "Running query with filter: " + str(filter)
+print("Running query with filter: " + str(filter))
 
 resp = conn.post('/plan/current/job/query', json=filter, headers={'How-Many': '10'})
 
@@ -42,9 +42,9 @@ for j in r:
     inputArrivalTime=j["jobStreamInPlan"]["startTime"]
     jobName=j["name"]
     jobId=j["id"]
-    print
-    print "---------------------------"
-    print "Rerunning %s#%s(%s).%s - id: %s" % (workstationName,jobStreamName,inputArrivalTime,jobName,jobId)
+    print()
+    print("---------------------------")
+    print("Rerunning %s#%s(%s).%s - id: %s" % (workstationName,jobStreamName,inputArrivalTime,jobName,jobId))
     url = '/plan/current/job/' + jobId + '/action/rerun'
 
     headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}

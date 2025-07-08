@@ -24,31 +24,31 @@ resp = conn.post('/model/workstation/header/query',
 r = resp.json()
 
 for w in r:
-	print 'Processing workstation ' + w['name']
-	if w['type']=='POOL':
-		wks = conn.get('/model/workstation/'+w['id']).json()
-		print 'Original workstation: %s' % wks
-		if 'agentLinks' not in wks:
-			wks['agentLinks'] = []
-		
-		agents = wks['agentLinks'] 
+    print('Processing workstation ' + w['name'])
+    if w['type']=='POOL':
+        wks = conn.get('/model/workstation/'+w['id']).json()
+        print('Original workstation: %s' % wks)
+        if 'agentLinks' not in wks:
+            wks['agentLinks'] = []
+        
+        agents = wks['agentLinks'] 
 
-		print 'Original members: %s' % agents
-		
-		#remove members to be deleted
-		if args.rm:
-			agents = list(filter(lambda a : a['workstationName'] != args.rm, agents))
+        print('Original members: %s' % agents)
+        
+        #remove members to be deleted
+        if args.rm:
+            agents = list(filter(lambda a : a['workstationName'] != args.rm, agents))
 
-		if args.add:
-			agents.append({ 'workstationName' : args.add})
-		
-		print 'Final members: %s' % agents
-		wks['agentLinks'] = agents
-		print 'Final workstation: %s' % wks
+        if args.add:
+            agents.append({ 'workstationName' : args.add})
+        
+        print('Final members: %s' % agents)
+        wks['agentLinks'] = agents
+        print('Final workstation: %s' % wks)
 
-		conn.put('/model/workstation/'+w['id'], wks)
+        conn.put('/model/workstation/'+w['id'], wks)
 
-	else:
-		print 'Ignoring %s workstation that is not a pool' % (w['name'])
-		
+    else:
+        print('Ignoring %s workstation that is not a pool' % (w['name']))
+
 

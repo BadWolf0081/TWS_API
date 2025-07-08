@@ -36,7 +36,7 @@ resp = conn.post(url, json=filters, headers=headers)
 r = resp.json()
 
 for dom in r:
-	domId=dom["id"]
+    domId=dom["id"]
 
 print("the domain id is: " + domId)
 
@@ -59,7 +59,7 @@ resp = conn.post(url, json=filters, headers=headers)
 r = resp.json()
 
 for wks in r:
-	wksId=wks["id"]
+    wksId=wks["id"]
 
 print("the workstation id is: " + wksId)
 
@@ -67,11 +67,11 @@ print("the workstation id is: " + wksId)
 # now we can perform the switch manager
 
 url = '/plan/current/domain/'+domId+'/action/switch_domain_workstation'
-print ('Connecting to '+url)
+print('Connecting to '+url)
 resp = conn.put(url, data=wksId)
 
 if resp.ok:
-  print ('Swithmgr started')
+    print('Swithmgr started')
 
 
 

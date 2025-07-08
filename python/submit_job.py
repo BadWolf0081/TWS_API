@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 #############################################################################
 # Licensed Materials - Property of HCL*
@@ -25,13 +25,13 @@ conn = waconn.WAConn('waconn.ini','/twsd')
 
 url = '/model/jobdefinition/header/query'
 filters = {
-		"filters": {
-			"jobDefinitionFilter": {
-				"jobDefinitionName": args.jobName,
-				"workstationName":args.jobWorkstationName
-			}
-		}
-	}
+        "filters": {
+            "jobDefinitionFilter": {
+                "jobDefinitionName": args.jobName,
+                "workstationName":args.jobWorkstationName
+            }
+        }
+    }
 # we get the first result
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json', 'How-Many': '1'}
 
@@ -41,13 +41,13 @@ resp = conn.post(url, json=filters, headers=headers)
 r = resp.json()
 
 for jd in r:
-	jobId=jd["id"]
+    jobId=jd["id"]
 
 print("the jd id is: " + jobId)
 
 jsWorkstationName=args.jobWorkstationName
 if args.jsWorkstationName:
-	jsWorkstationName = args.jsWorkstationName
+    jsWorkstationName = args.jsWorkstationName
 
 url = '/plan/current/jobstream/' + jsWorkstationName + '%3B' + args.jsInternalIdentifier + '/action/submit_job'
 
@@ -55,7 +55,7 @@ url = '/plan/current/jobstream/' + jsWorkstationName + '%3B' + args.jsInternalId
 filters = {
     "jobDefinitionId": jobId,
     "alias": args.jobAlias
-	}
+    }
 # we get the first result
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
@@ -71,15 +71,15 @@ url = '/plan/current/job/action/submit_ad_hoc_job'
 
 filters = {
     "job": jobInplanInstance
-	}
+    }
 # we get the first result
 headers = {'Content-Type': 'application/json', 'Accept': 'application/json'}
 
-print ('Connecting to '+url)
+print('Connecting to '+url)
 resp = conn.post(url, json=filters, headers=headers)
 
 r = resp.json()
-print ('Submitted '+r["id"])
+print('Submitted '+r["id"])
 
 
 

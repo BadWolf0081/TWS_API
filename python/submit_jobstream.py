@@ -82,14 +82,14 @@ if args.variables:
 
 # Eventually add the argument for alias argument
 if args.alias:
-	submit["alias"] = args.alias
+    submit["alias"] = args.alias
 
 # now we can submit the js
-print "submit parameters: " +str(submit)
+print("submit parameters: " +str(submit))
 resp = conn.post('/plan/current/jobstream/' + jsId + '/action/submit_jobstream', json=submit)
-print resp
-print resp.headers
+print(resp)
+print(resp.headers)
 r = resp.json()
 
 for js in r:
-	print ('Submitted: '+js)
+    print('Submitted: '+js)
