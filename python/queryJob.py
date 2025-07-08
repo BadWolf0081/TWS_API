@@ -17,5 +17,5 @@ r = resp.json()
 
 #print json.dumps(r, indent=2)
 for js in r:
-    print(js["key"]["name"])
+    print(js["name"])
 
