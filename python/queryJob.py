@@ -6,7 +6,7 @@ parser = argparse.ArgumentParser(description='Query job.')
 parser.add_argument('-j','--jname', help='job name filter', required=True, metavar="J_FILTER")
 
 args = parser.parse_args()
-conn = waconn.WAConn('waconn.ini','/twsd/api/v2')
+conn = waconn.WAConn('waconn.ini','/twsd')
 
 # Query to find pools matching provided filter
 resp = conn.post('/plan/current/job/query',
