@@ -17,5 +17,5 @@ r = resp.json()
 
 #print json.dumps(r, indent=2)
 for js in r:
-    print(js["workstationInPlanKey"]["name"]+'#'+js["name"])
+    print(js["jobDefinition"]["jobDefinitionInPlanKey"]["workstationInPlanKey"]["name"]+'#'+js["name"])
 
