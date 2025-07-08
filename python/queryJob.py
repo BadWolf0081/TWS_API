@@ -9,7 +9,7 @@ args = parser.parse_args()
 conn = waconn.WAConn('waconn.ini','/twsd/api/v2')
 
 # Query to find pools matching provided filter
-resp = conn.post('/plan/job',
+resp = conn.post('/plan/current/job/query',
 	{ "filters": { "jobInPlanFilter": { "jobName": args.jname } } }, 
 	headers={'How-Many': '500'})
 
