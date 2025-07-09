@@ -10,6 +10,7 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 WEBEX_TOKEN = config['WEBEX']['access_token']
+ALLOWED_ROOM_ID = config['WEBEX'].get('allowed_room_id', '').strip()
 API_BASE = config['TWS_API']['base_url']
 API_USER = config['TWS_API']['user']
 API_PASS = config['TWS_API']['password']
@@ -58,6 +59,17 @@ def webex_webhook():
     msg = msg_resp.json()
     text = msg.get('text', '')
     room_id = msg.get('roomId')
+    person_id = msg.get('personId')
+
+    # Only respond to allowed room
+    if ALLOWED_ROOM_ID and room_id != ALLOWED_ROOM_ID:
+        return '', 200
+
+    # Ignore messages sent by the bot itself
+    me_resp = requests.get("https://webexapis.com/v1/people/me", headers=headers)
+    bot_id = me_resp.json().get("id")
+    if person_id == bot_id:
+        return '', 200
 
     if text.startswith('!loaded '):
         job_name = text[len('!loaded '):].strip()
