@@ -91,6 +91,7 @@ def webex_webhook():
                             js["jobDefinition"]["jobDefinitionInPlanKey"]["workstationInPlanKey"]["name"]
                             + '#' + '\u200b' + js["jobStreamInPlan"]["name"]  # zero-width space after #
                             + '.' + js["name"]
+                            + ' - ' + js["dependencies"]["internalDependencyInPlan"]["JobInPlanKey"]["jobStreamInPlanKey"]["startTime"]
                         )
                         lines.append(line)
                     except Exception as ex:
