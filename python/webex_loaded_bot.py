@@ -50,6 +50,26 @@ def query_job(job_name):
     resp.raise_for_status()
     return resp.json()
 
+def query_jobstreams(js_name):
+    url = f"{API_BASE}/plan/current/jobstream/query"
+    payload = {
+        "filters": {
+            "jobStreamInPlanFilter": {
+                "jobStreamName": js_name
+            }
+        }
+    }
+    headers = {'How-Many': '500', 'Accept': 'application/json'}
+    resp = requests.post(
+        url,
+        auth=(API_USER, API_PASS),
+        headers=headers,
+        json=payload,
+        verify=VERIFY_SSL
+    )
+    resp.raise_for_status()
+    return resp.json()
+
 def format_start_time(utc_str, offset_hours):
     # Parse the UTC time string
     dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%S.%fZ")
@@ -118,6 +138,36 @@ def webex_webhook():
         except Exception as e:
             send_webex_message(room_id, f"Error querying job: {e}")
             logging.error(f"Error querying job: {e}")
+
+    elif text.startswith('!willrun '):
+        js_name = text[len('!willrun '):].strip()
+        try:
+            jobstreams = query_jobstreams(js_name)
+            logging.info(f"Job stream query for '{js_name}' returned: {jobstreams}")
+            if not jobstreams:
+                send_webex_message(room_id, f"No job streams found for '{js_name}'.")
+                logging.info(f"No job streams found for '{js_name}'.")
+            else:
+                lines = []
+                for js in jobstreams:
+                    try:
+                        js_id = js["header"]["id"]
+                        line = f"Job Stream ID: {js_id}"
+                        lines.append(line)
+                        print(js_id)  # Print to console as requested
+                    except Exception as ex:
+                        logging.warning(f"Error parsing job stream entry: {ex}")
+                        continue
+                if lines:
+                    result = "Job Stream IDs:\n" + "\n".join(lines)
+                    send_webex_message(room_id, result)
+                    logging.info(f"Sent job stream IDs to room: {result}")
+                else:
+                    send_webex_message(room_id, f"No job streams found for '{js_name}' after parsing.")
+                    logging.info(f"No job streams found for '{js_name}' after parsing.")
+        except Exception as e:
+            send_webex_message(room_id, f"Error querying job streams: {e}")
+            logging.error(f"Error querying job streams: {e}")
 
     return '', 200
 
