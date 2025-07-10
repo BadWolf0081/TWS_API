@@ -53,12 +53,10 @@ def query_job(job_name):
 def query_jobstreams(js_name):
     url = f"{API_BASE}/model/jobstream?key={js_name}"
     headers = {'How-Many': '500', 'Accept': 'application/json'}
-    payload = {}
     resp = requests.post(
         url,
         auth=(API_USER, API_PASS),
         headers=headers,
-        json=payload,
         verify=VERIFY_SSL
     )
     resp.raise_for_status()
