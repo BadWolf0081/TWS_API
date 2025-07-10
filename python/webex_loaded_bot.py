@@ -51,15 +51,9 @@ def query_job(job_name):
     return resp.json()
 
 def query_jobstreams(js_name):
-    url = f"{API_BASE}/plan/current/jobstream/query"
-    payload = {
-        "filters": {
-            "jobStreamInPlanFilter": {
-                "jobStreamName": js_name
-            }
-        }
-    }
+    url = f"{API_BASE}/model/jobstream?key={js_name}"
     headers = {'How-Many': '500', 'Accept': 'application/json'}
+    payload = {}
     resp = requests.post(
         url,
         auth=(API_USER, API_PASS),
