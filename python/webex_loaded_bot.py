@@ -1,6 +1,7 @@
 import requests
 import configparser
 import json
+import logging
 from flask import Flask, request
 
 app = Flask(__name__)
@@ -15,6 +16,8 @@ API_BASE = config['TWS_API']['base_url']
 API_USER = config['TWS_API']['user']
 API_PASS = config['TWS_API']['password']
 VERIFY_SSL = config['TWS_API'].getboolean('verify_ssl', fallback=True)
+
+logging.basicConfig(level=logging.INFO)
 
 def send_webex_message(room_id, text):
     url = "https://webexapis.com/v1/messages"
@@ -45,10 +48,12 @@ def query_job(job_name):
     resp.raise_for_status()
     return resp.json()
 
-@app.route('/webex', methods=['POST'])
+@app.route('lab/pcs/maestro/events/webex', methods=['POST'])
 def webex_webhook():
     data = request.json
+    logging.info(f"Received webhook data: {data}")
     if 'data' not in data or 'id' not in data['data']:
+        logging.warning("Malformed webhook payload")
         return '', 400
 
     # Get message details
@@ -61,22 +66,23 @@ def webex_webhook():
     room_id = msg.get('roomId')
     person_id = msg.get('personId')
 
-    # Only respond to allowed room
-    if ALLOWED_ROOM_ID and room_id != ALLOWED_ROOM_ID:
-        return '', 200
+    logging.info(f"Message received: text='{text}', room_id='{room_id}', person_id='{person_id}'")
 
     # Ignore messages sent by the bot itself
     me_resp = requests.get("https://webexapis.com/v1/people/me", headers=headers)
     bot_id = me_resp.json().get("id")
     if person_id == bot_id:
+        logging.info("Ignoring message from self.")
         return '', 200
 
     if text.startswith('!loaded '):
         job_name = text[len('!loaded '):].strip()
         try:
             jobs = query_job(job_name)
+            logging.info(f"Job query for '{job_name}' returned: {jobs}")
             if not jobs:
                 send_webex_message(room_id, f"No jobs found for '{job_name}'.")
+                logging.info(f"No jobs found for '{job_name}'.")
             else:
                 lines = []
                 for js in jobs:
@@ -87,14 +93,19 @@ def webex_webhook():
                             + '.' + js["name"]
                         )
                         lines.append(line)
-                    except Exception:
+                    except Exception as ex:
+                        logging.warning(f"Error parsing job entry: {ex}")
                         continue
                 if lines:
-                    send_webex_message(room_id, "Jobs loaded:\n" + "\n".join(lines))
+                    result = "Jobs loaded:\n" + "\n".join(lines)
+                    send_webex_message(room_id, result)
+                    logging.info(f"Sent job list to room: {result}")
                 else:
                     send_webex_message(room_id, f"No jobs found for '{job_name}'.")
+                    logging.info(f"No jobs found for '{job_name}' after parsing.")
         except Exception as e:
             send_webex_message(room_id, f"Error querying job: {e}")
+            logging.error(f"Error querying job: {e}")
 
     return '', 200
 
