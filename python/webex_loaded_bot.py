@@ -89,7 +89,7 @@ def webex_webhook():
                     try:
                         line = (
                             js["jobDefinition"]["jobDefinitionInPlanKey"]["workstationInPlanKey"]["name"]
-                            + '#' + js["jobStreamInPlan"]["name"]
+                            + '#' + '\u200b' + js["jobStreamInPlan"]["name"]  # zero-width space after #
                             + '.' + js["name"]
                         )
                         lines.append(line)
