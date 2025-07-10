@@ -48,7 +48,7 @@ def query_job(job_name):
     resp.raise_for_status()
     return resp.json()
 
-@app.route('lab/pcs/maestro/events/webex', methods=['POST'])
+@app.route('/lab/pcs/maestro/events/webex', methods=['POST'])
 def webex_webhook():
     data = request.json
     logging.info(f"Received webhook data: {data}")
