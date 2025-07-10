@@ -134,7 +134,14 @@ def webex_webhook():
             logging.error(f"Error querying job: {e}")
 
     elif text.startswith('!willrun '):
-        js_name = text[len('!willrun '):].strip()
+        # Split into name and date
+        parts = text[len('!willrun '):].strip().split()
+        if len(parts) != 2:
+            send_webex_message(room_id, "Usage: !willrun JOBSTREAMNAME YYYY-MM-DD")
+            return '', 200
+        js_name, to_date = parts
+        from datetime import datetime
+        today_str = datetime.utcnow().strftime('%Y-%m-%d')
         try:
             jobstreams = query_jobstreams(js_name)
             logging.info(f"Jobstream query for '{js_name}' returned: {jobstreams}")
@@ -142,25 +149,32 @@ def webex_webhook():
                 send_webex_message(room_id, f"No job streams found for '{js_name}'.")
                 logging.info(f"No job streams found for '{js_name}'.")
             else:
-                lines = []
                 # If the API returns a single dict, wrap it in a list for uniform processing
                 if isinstance(jobstreams, dict):
                     jobstreams = [jobstreams]
+                lines = []
                 for js in jobstreams:
                     try:
                         js_id = js["header"]["id"]
-                        wks_name = js["header"]["key"]["workstationName"]
-                        line = f"Job Stream ID: {js_id}  Workstation: {wks_name}"
+                        rc_eval = rc_evaluation(js_id, today_str, to_date)
+                        selected_dates = [
+                            entry["date"]
+                            for entry in rc_eval.get("results", [])
+                            if "SELECTED" in entry.get("type", [])
+                        ]
+                        if selected_dates:
+                            line = f"Job Stream ID: {js_id}\nSelected Dates:\n" + "\n".join(selected_dates)
+                        else:
+                            line = f"Job Stream ID: {js_id}\nNo SELECTED dates found."
                         lines.append(line)
-                        logging.info(f"Job Stream ID: {js_id}  Workstation: {wks_name}")
-                        print(f"Job Stream ID: {js_id}  Workstation: {wks_name}")
+                        logging.info(f"Job Stream ID: {js_id} SELECTED dates: {selected_dates}")
                     except Exception as ex:
-                        logging.warning(f"Error parsing job stream entry: {ex}")
+                        logging.warning(f"Error processing job stream entry: {ex}")
                         continue
                 if lines:
-                    result = "Job Streams found:\n" + "\n".join(lines)
+                    result = "Job Streams RC Evaluation:\n\n" + "\n\n".join(lines)
                     send_webex_message(room_id, result)
-                    logging.info(f"Sent job stream list to room: {result}")
+                    logging.info(f"Sent job stream RC evaluation to room.")
                 else:
                     send_webex_message(room_id, f"No job streams found for '{js_name}' after parsing.")
                     logging.info(f"No job streams found for '{js_name}' after parsing.")
@@ -169,6 +183,20 @@ def webex_webhook():
             logging.error(f"Error querying job stream: {e}")
 
     return '', 200
+
+def rc_evaluation(jobstream_id, from_date, to_date):
+    url = f"{API_BASE}/model/jobstream/{jobstream_id}/rc-evaluation"
+    params = {'from': from_date, 'to': to_date}
+    headers = {'Accept': 'application/json'}
+    resp = requests.get(
+        url,
+        auth=(API_USER, API_PASS),
+        headers=headers,
+        params=params,
+        verify=VERIFY_SSL
+    )
+    resp.raise_for_status()
+    return resp.json()
 
 if __name__ == '__main__':
     app.run(host="0.0.0.0", port=80)
