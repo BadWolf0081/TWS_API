@@ -28,7 +28,9 @@ def send_webex_message(room_id, text):
         "Content-Type": "application/json"
     }
     data = {"roomId": room_id, "text": text}
-    requests.post(url, headers=headers, json=data)
+    resp = requests.post(url, headers=headers, json=data)
+    logging.info(f"Webex send message response: {resp.status_code} {resp.text}")
+    return resp
 
 def query_job(job_name):
     url = f"{API_BASE}/plan/current/job/query"
@@ -91,6 +93,7 @@ def webex_webhook():
     person_id = msg.get('personId')
 
     logging.info(f"Message received: text='{text}', room_id='{room_id}', person_id='{person_id}'")
+    logging.info(f"Raw message text: {msg.get('text', '')}")
 
     # Ignore messages sent by the bot itself
     me_resp = requests.get("https://webexapis.com/v1/people/me", headers=headers)
@@ -103,6 +106,8 @@ def webex_webhook():
     bot_email = me_resp.json().get("emails", [""])[0]
     if text.startswith(f"@{bot_email}"):
         text = text.split(' ', 1)[1].strip()
+
+    logging.info(f"Processed text after mention strip: {text}")
 
     if text.startswith('!loaded '):
         job_name = text[len('!loaded '):].strip()
