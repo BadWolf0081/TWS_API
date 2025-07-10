@@ -102,13 +102,6 @@ def webex_webhook():
         logging.info("Ignoring message from self.")
         return '', 200
 
-    # Remove bot mention if present (for group spaces)
-    bot_email = me_resp.json().get("emails", [""])[0]
-    if text.startswith(f"@{bot_email}"):
-        text = text.split(' ', 1)[1].strip()
-
-    logging.info(f"Processed text after mention strip: {text}")
-
     if text.startswith('!loaded '):
         job_name = text[len('!loaded '):].strip()
         try:
