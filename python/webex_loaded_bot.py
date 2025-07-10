@@ -3,6 +3,7 @@ import configparser
 import json
 import logging
 from flask import Flask, request
+from datetime import datetime, timedelta, timezone
 
 app = Flask(__name__)
 
@@ -16,6 +17,7 @@ API_BASE = config['TWS_API']['base_url']
 API_USER = config['TWS_API']['user']
 API_PASS = config['TWS_API']['password']
 VERIFY_SSL = config['TWS_API'].getboolean('verify_ssl', fallback=True)
+TIMEZONE_OFFSET = config['TWS_API'].getint('timezone_offset', fallback=0)
 
 logging.basicConfig(level=logging.INFO)
 
@@ -47,6 +49,14 @@ def query_job(job_name):
     )
     resp.raise_for_status()
     return resp.json()
+
+def format_start_time(utc_str, offset_hours):
+    # Parse the UTC time string
+    dt = datetime.strptime(utc_str, "%Y-%m-%dT%H:%M:%S.%fZ")
+    # Apply the offset
+    dt_local = dt + timedelta(hours=offset_hours)
+    # Format as "HH:MM on YYYY-MM-DD"
+    return dt_local.strftime("%H:%M on %Y-%m-%d")
 
 @app.route('/lab/pcs/maestro/events/webex', methods=['POST'])
 def webex_webhook():
@@ -89,10 +99,10 @@ def webex_webhook():
                     try:
                         line = (
                             js["jobDefinition"]["jobDefinitionInPlanKey"]["workstationInPlanKey"]["name"]
-                            + '#' + '\u200b' + js["jobStreamInPlan"]["name"]  # zero-width space after #
+                            + '#' + '\u200b' + js["jobStreamInPlan"]["name"]
                             + '.' + js["name"]
                             + '   State: ' + js["status"]["internalStatus"]
-                            + '   Start Time: ' + js["jobStreamInPlan"]["startTime"]
+                            + '   Start Time: ' + format_start_time(js["jobStreamInPlan"]["startTime"], TIMEZONE_OFFSET)
                         )
                         lines.append(line)
                     except Exception as ex:
