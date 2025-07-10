@@ -92,6 +92,10 @@ def webex_webhook():
     room_id = msg.get('roomId')
     person_id = msg.get('personId')
 
+    # Remove "Maestro" mention from the beginning if present (case-insensitive, with or without colon)
+    if text.lower().startswith("maestro"):
+        text = text[len("maestro"):].lstrip(" :").lstrip()
+
     logging.info(f"Message received: text='{text}', room_id='{room_id}', person_id='{person_id}'")
     logging.info(f"Raw message text: {msg.get('text', '')}")
 
