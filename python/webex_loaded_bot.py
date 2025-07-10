@@ -92,6 +92,11 @@ def webex_webhook():
     room_id = msg.get('roomId')
     person_id = msg.get('personId')
 
+    # Only respond in the allowed room
+    if ALLOWED_ROOM_ID and room_id != ALLOWED_ROOM_ID:
+        logging.info(f"Ignoring message from room {room_id} (not allowed).")
+        return '', 200
+
     # Remove "Maestro" mention from the beginning if present (case-insensitive, with or without colon)
     if text.lower().startswith("maestro"):
         text = text[len("maestro"):].lstrip(" :").lstrip()
