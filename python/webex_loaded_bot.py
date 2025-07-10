@@ -52,15 +52,13 @@ def query_job(job_name):
 
 def query_jobstreams(js_name):
     url = f"{API_BASE}/model/jobstream"
-    payload = {
-        "key": js_name
-            }
-    headers = {'How-Many': '500', 'Accept': 'application/json', 'Content-Type': 'application/json'}
-    resp = requests.post(
+    params = {'key': js_name}
+    headers = {'Accept': 'application/json'}
+    resp = requests.get(
         url,
         auth=(API_USER, API_PASS),
         headers=headers,
-        json=payload,
+        params=params,
         verify=VERIFY_SSL
     )
     resp.raise_for_status()
@@ -138,32 +136,20 @@ def webex_webhook():
     elif text.startswith('!willrun '):
         js_name = text[len('!willrun '):].strip()
         try:
-            jobstreams = query_jobstreams(js_name)
-            logging.info(f"Job stream query for '{js_name}' returned: {jobstreams}")
-            if not jobstreams:
-                send_webex_message(room_id, f"No job streams found for '{js_name}'.")
-                logging.info(f"No job streams found for '{js_name}'.")
+            jobstream = query_jobstreams(js_name)
+            logging.info(f"Jobstream query for '{js_name}' returned: {jobstream}")
+            if not jobstream or "header" not in jobstream or "id" not in jobstream["header"]:
+                send_webex_message(room_id, f"No job stream found for '{js_name}'.")
+                logging.info(f"No job stream found for '{js_name}'.")
             else:
-                lines = []
-                for js in jobstreams:
-                    try:
-                        js_id = js["header"]["id"]
-                        line = f"Job Stream ID: {js_id}"
-                        lines.append(line)
-                        print(js_id)  # Print to console as requested
-                    except Exception as ex:
-                        logging.warning(f"Error parsing job stream entry: {ex}")
-                        continue
-                if lines:
-                    result = "Job Stream IDs:\n" + "\n".join(lines)
-                    send_webex_message(room_id, result)
-                    logging.info(f"Sent job stream IDs to room: {result}")
-                else:
-                    send_webex_message(room_id, f"No job streams found for '{js_name}' after parsing.")
-                    logging.info(f"No job streams found for '{js_name}' after parsing.")
+                js_id = jobstream["header"]["id"]
+                result = f"Job Stream ID: {js_id}"
+                send_webex_message(room_id, result)
+                logging.info(f"Job Stream ID for '{js_name}': {js_id}")
+                print(f"Job Stream ID for '{js_name}': {js_id}")
         except Exception as e:
-            send_webex_message(room_id, f"Error querying job streams: {e}")
-            logging.error(f"Error querying job streams: {e}")
+            send_webex_message(room_id, f"Error querying job stream: {e}")
+            logging.error(f"Error querying job stream: {e}")
 
     return '', 200
 
