@@ -163,9 +163,9 @@ def webex_webhook():
     data = request.json
     logging.info(f"Received webhook data: {data}")
     
-    # Handle card submissions
-    if 'data' in data and 'inputs' in data['data']:
-        return handle_card_submission(data)
+    # Check if this is a card submission (attachmentAction)
+    if 'resource' in data and data['resource'] == 'attachmentActions':
+        return handle_attachment_action(data)
     
     # Handle regular messages
     if 'data' not in data or 'id' not in data['data']:
@@ -208,9 +208,21 @@ def webex_webhook():
 
     return '', 200
 
-def handle_card_submission(data):
-    inputs = data['data']['inputs']
-    room_id = data['data']['roomId']
+def handle_attachment_action(data):
+    # Get attachment action details
+    action_id = data['data']['id']
+    action_url = f"https://webexapis.com/v1/attachment/actions/{action_id}"
+    headers = {"Authorization": f"Bearer {WEBEX_TOKEN}"}
+    action_resp = requests.get(action_url, headers=headers)
+    action_data = action_resp.json()
+    
+    room_id = action_data.get('roomId')
+    inputs = action_data.get('inputs', {})
+    
+    # Only respond in the allowed room
+    if ALLOWED_ROOM_ID and room_id != ALLOWED_ROOM_ID:
+        logging.info(f"Ignoring card submission from room {room_id} (not allowed).")
+        return '', 200
     
     action = inputs.get('action', '')
     jobname = inputs.get('jobname', '').strip()
