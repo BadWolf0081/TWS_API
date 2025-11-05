@@ -27,7 +27,11 @@ def send_webex_card(room_id, card_json):
         "Authorization": f"Bearer {WEBEX_TOKEN}",
         "Content-Type": "application/json"
     }
-    data = {"roomId": room_id, "attachments": [{"contentType": "application/vnd.microsoft.card.adaptive", "content": card_json}]}
+    data = {
+        "roomId": room_id, 
+        "text": "Maestro Job Query Menu",  # Add fallback text
+        "attachments": [{"contentType": "application/vnd.microsoft.card.adaptive", "content": card_json}]
+    }
     resp = requests.post(url, headers=headers, json=data)
     logging.info(f"Webex send card response: {resp.status_code} {resp.text}")
     return resp
